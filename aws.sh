@@ -1,8 +1,6 @@
 #!/bin/bash
-
 HOSTS=("aaa.aws.tom.ru bbb.aws.tom.ru ccc.aws.tom.ru")
 currentdata=$(date +%Y-%m-%d)
-
 #1 Determine the instance state using its DNS name (need at least 2 verifications: TCP and HTTP)
     for myHost in ${HOSTS[@]}
     do
@@ -40,7 +38,7 @@ currentdata=$(date +%Y-%m-%d)
 
 #3 Terminate stopped EC2 after AMI creation.
     echo Terminate stopped EC2 i-067d60553f788d54c
-    read -p "Are you sure want to terminate AMI i-067d60553f788d54c? (Y/n) " -n 1 -r
+    read -p "Are you sure want to terminate i-067d60553f788d54c? (Y/n) " -n 1 -r
         echo
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
@@ -53,8 +51,6 @@ currentdata=$(date +%Y-%m-%d)
     fi
 
 #4 Clean up AMIs older than 7 days.
-    #aws ec2 describe-images --owners 717986625066 --query 'Images[*].[CreationDate,ImageId]' >> text.txt
-    #select needed AMI's
     echo -ne "AMIs older than 7 days, \x1b[31m!!!please check it twise before deleting!!!:\x1b[0m"
     echo
     aws ec2 describe-images --owners 717986625066 --query 'Images[*].[CreationDate,ImageId]' | sort| awk -vDate=$(date -d'now-7 days' +%Y-%m-%dT%H:%M:%S.000Z) ' { if ($1 < Date) print $1, $2}'
@@ -76,7 +72,6 @@ currentdata=$(date +%Y-%m-%d)
     fi
 
 #5 Print all instances in fine-grained output, INCLUDING terminated one, with highlighting their current state.
-
 state=(`aws ec2 describe-instances --filters "Name=instance.group-name, Values=KonstantinVish" --query Reservations[].Instances[].[State] | cut -f2`)
 name=(`aws ec2 describe-instances --filters "Name=instance.group-name, Values=KonstantinVish" --query Reservations[].Instances[].Tags | cut -f2 | sort`)
 publicIP=(`aws ec2 describe-instances --filters "Name=instance.group-name, Values=KonstantinVish" --query Reservations[].Instances[].PublicIpAddress`)
@@ -91,7 +86,3 @@ publicIP=(`aws ec2 describe-instances --filters "Name=instance.group-name, Value
         echo
         fi
     done
-
-#echo Machine Name:${name[0]} State:${state[0]} PublicIP:${publicIP[0]}
-#echo Machine Name:${name[1]} State:${state[1]} PublicIP:${publicIP[1]}
-#echo -ne "Machine Name:${name[2]}\x1b[31m State:${state[2]}\x1b[0m PublicIP:${publicIP[2]} "
